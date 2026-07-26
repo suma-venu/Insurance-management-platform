@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { Link } from "react-router-dom";
 
 function Customers(){
 
@@ -107,6 +108,13 @@ return (
   <div className="min-h-screen bg-sky-300 p-6">
     <div className="mx-auto max-w-6xl">
     <h1 className="mb-6 text-3xl font-bold text-slate-500">Customer Management</h1>
+
+    <Link
+  to="/customer-dashboard"
+  className="mb-4 inline-block rounded-lg bg-slate-700 px-4 py-2 text-white hover:bg-slate-800"
+>
+  Back to Dashboard
+</Link>
 
     <div className="mb-8 rounded-xl bg-white p-6 shadow">
         <h2 className="mb-4 text-xl font-semibold text-slate-700">

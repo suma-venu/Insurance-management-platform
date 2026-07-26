@@ -1,6 +1,7 @@
 import {supabase} from "../lib/supabase";
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register(){
   const [name, setName] = useState("");
@@ -8,6 +9,7 @@ function Register(){
     const [password, setPassword] = useState("");
      const [role, setRole] = useState("customer");
       const [message, setMessage] = useState("");
+     const navigate = useNavigate();
 
 
 
@@ -50,6 +52,7 @@ async function handleRegister(event) {
     setEmail("");
     setPassword("");
     setRole("customer");
+    navigate("/login");
   }
 }
 return(

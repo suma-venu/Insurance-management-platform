@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -26,11 +28,10 @@ function Login() {
       return;
     }
 
-    if (data.user) {
-      setMessage("Login successful.");
-      setEmail("");
-      setPassword("");
-    }
+   if (data.user) {
+  setMessage("Login successful.");
+  navigate("/customer-dashboard");
+}
   }
 
   return (
