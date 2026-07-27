@@ -30,6 +30,15 @@ function CustomerDashboard() {
               Policy Management
             </h2>
           </Link>
+
+          <Link
+  to="/premiums"
+  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
+>
+  <h2 className="text-xl font-semibold text-blue-700">
+    Premium Tracking
+  </h2>
+</Link>
         </div>
       </div>
     </div>

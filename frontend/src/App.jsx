@@ -6,6 +6,8 @@ import Register from"./pages/Register";
 import Customers from"./pages/Customers";
 import Policies from"./pages/Policies";
 import Dashboard from "./pages/Dashboard";
+import Premiums from"./pages/Premiums";
+
 
 
 
@@ -23,6 +25,7 @@ return (
            <Route path="/customers" element={<Customers/>}/>
             <Route path="/policies" element={<Policies/>}/>
             <Route path="/customer-dashboard"element={<Dashboard />}/> 
+            <Route path="/premiums" element={<Premiums/>}/>
        </Routes>
 </BrowserRouter>
 
