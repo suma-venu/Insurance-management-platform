@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Premiums from"./pages/Premiums";
 import Claims from"./pages/Claims";
 import Documents from "./pages/Documents";
+import Reports from"./pages/Reports";
 
 
 
@@ -30,6 +31,8 @@ return (
             <Route path="/premiums" element={<Premiums/>}/>
             <Route path="/claims" element={<Claims/>}/>
             <Route path="/documents"element={<Documents/>}/>
+             <Route path="/reports"element={<Reports/>}/>
+
        </Routes>
 </BrowserRouter>
 

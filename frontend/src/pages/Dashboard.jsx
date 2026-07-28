@@ -57,6 +57,14 @@ function CustomerDashboard() {
     Document Management
   </h2>
 </Link>
+<Link
+  to="/reports"
+  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
+>
+  <h2 className="text-xl font-semibold text-blue-700">
+    Report Dashboard
+  </h2>
+</Link>
         </div>
       </div>
     </div>
