@@ -39,6 +39,15 @@ function CustomerDashboard() {
     Premium Tracking
   </h2>
 </Link>
+
+<Link
+  to="/claims"
+  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
+>
+  <h2 className="text-xl font-semibold text-blue-700">
+    Claim Management
+  </h2>
+</Link>
         </div>
       </div>
     </div>

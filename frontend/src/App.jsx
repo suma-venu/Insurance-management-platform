@@ -7,6 +7,7 @@ import Customers from"./pages/Customers";
 import Policies from"./pages/Policies";
 import Dashboard from "./pages/Dashboard";
 import Premiums from"./pages/Premiums";
+import Claims from"./pages/Claims";
 
 
 
@@ -26,6 +27,7 @@ return (
             <Route path="/policies" element={<Policies/>}/>
             <Route path="/customer-dashboard"element={<Dashboard />}/> 
             <Route path="/premiums" element={<Premiums/>}/>
+            <Route path="/claims" element={<Claims/>}/>
        </Routes>
 </BrowserRouter>
 
