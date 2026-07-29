@@ -15,7 +15,12 @@ function Policies() {
   const [policies, setPolicies] = useState([]);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
+
 const [search, setSearch] = useState("");
+const [filterStatus, setFilterStatus] = useState("All");
+const [currentPage, setCurrentPage] = useState(1);
+
+const policiesPerPage = 5;
 
   async function fetchCustomers() {
     const { data, error } = await supabase
@@ -187,6 +192,34 @@ if (editingId) {
      fetchPolicies();
   }, []);
 
+  const filteredPolicies = policies.filter((policy) => {
+  const matchesSearch =
+    policy.policy_type
+      .toLowerCase()
+      .includes(search.toLowerCase()) ||
+    policy.policy_number
+      .toString()
+      .includes(search);
+
+  const matchesStatus =
+    filterStatus === "All" ||
+    policy.status === filterStatus;
+
+  return matchesSearch && matchesStatus;
+});
+
+const lastPolicy = currentPage * policiesPerPage;
+const firstPolicy = lastPolicy - policiesPerPage;
+
+const currentPolicies = filteredPolicies.slice(
+  firstPolicy,
+  lastPolicy
+);
+
+const totalPages = Math.ceil(
+  filteredPolicies.length / policiesPerPage
+);
+
  return (
   <div className="min-h-screen bg-blue-300 p-6">
     <div className="mx-auto max-w-7xl">
@@ -319,6 +352,35 @@ if (editingId) {
           Policy List
         </h2>
 
+        <div className="mb-4 flex flex-col gap-3 md:flex-row">
+
+  <input
+    type="text"
+    placeholder="Search policy..."
+    value={search}
+    onChange={(e) => {
+      setSearch(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="rounded-lg border p-3"
+  />
+
+  <select
+    value={filterStatus}
+    onChange={(e) => {
+      setFilterStatus(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="rounded-lg border p-3"
+  >
+    <option>All</option>
+    <option>Active</option>
+    <option>Expired</option>
+    <option>Cancelled</option>
+  </select>
+
+</div>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-250 border-collapse text-left">
             <thead>
@@ -335,7 +397,7 @@ if (editingId) {
             </thead>
 
             <tbody>
-              {policies.map((policy) => (
+             {currentPolicies.map((policy) => (
                 <tr
                   key={policy.id}
                   className="border-b text-sm text-slate-700 hover:bg-slate-50"
@@ -394,7 +456,7 @@ if (editingId) {
                 </tr>
               ))}
 
-              {policies.length === 0 && (
+              {currentPolicies.length === 0 && (
                 <tr>
                   <td
                     colSpan="8"
@@ -407,6 +469,36 @@ if (editingId) {
             </tbody>
           </table>
         </div>
+<div className="mt-6 flex justify-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) => Math.max(page - 1, 1))
+    }
+    disabled={currentPage === 1}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Previous
+  </button>
+
+  <span className="px-4 py-2">
+    {currentPage} / {totalPages || 1}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) =>
+        Math.min(page + 1, totalPages)
+      )
+    }
+    disabled={currentPage === totalPages || totalPages === 0}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Next
+  </button>
+</div>
+
       </div>
     </div>
   </div>

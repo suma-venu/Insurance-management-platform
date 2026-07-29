@@ -14,6 +14,9 @@ function Customers(){
   const[customers,setCustomers]= useState([]);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
+ const [currentPage, setCurrentPage] = useState(1);
+
+const customersPerPage = 5;
 
   async function handleAddCustomer(event){
 event.preventDefault();
@@ -104,6 +107,24 @@ setCustomers(data);
   fetchCustomers();
 }, []);
 
+
+const filteredCustomers = customers.filter((customer) =>
+  customer.name.toLowerCase().includes(search.toLowerCase())
+);
+
+const lastCustomer = currentPage * customersPerPage;
+const firstCustomer = lastCustomer - customersPerPage;
+
+const currentCustomers = filteredCustomers.slice(
+  firstCustomer,
+  lastCustomer
+);
+
+const totalPages = Math.ceil(
+  filteredCustomers.length / customersPerPage
+);
+
+
 return (
   <div className="min-h-screen bg-sky-300 p-6">
     <div className="mx-auto max-w-6xl">
@@ -183,14 +204,17 @@ return (
 
      {/* Search Box */}
 
-  <input
-    type="text"
-    placeholder="Search Customer..."
-    value={search}
-    onChange={(event) => setSearch(event.target.value)}
-    className="mb-4 w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
-  />
-
+  
+<input
+  type="text"
+  placeholder="Search customer..."
+  value={search}
+  onChange={(e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  }}
+  className="mb-4 w-full rounded-lg border p-3"
+/>
     <h2 className="mb-4 text-xl font-semibold text-slate-700">Customer list</h2>
 
     <div className="overflow-x-auto">
@@ -212,10 +236,7 @@ return (
            
 
 <tbody>
-              {customers.filter((customer) =>
-              customer.name.toLowerCase ().includes(search.toLowerCase())
-    )
-                 .map((customer) => (
+        { currentCustomers.map((customer) => (
                 <tr
                   key={customer.id}
                   className="border-b hover:bg-slate-50"
@@ -239,9 +260,40 @@ return (
                 </tr>
               ))}
             </tbody>
+
           </table>
-        </div>
-      </div>
+</div>
+
+<div className="mt-6 flex justify-center gap-2">
+  <button
+    onClick={() =>
+      setCurrentPage((page) => Math.max(page - 1, 1))
+    }
+    disabled={currentPage === 1}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Previous
+  </button>
+
+  <span className="px-4 py-2">
+    {currentPage} / {totalPages || 1}
+  </span>
+
+  <button
+    onClick={() =>
+      setCurrentPage((page) =>
+        Math.min(page + 1, totalPages)
+      )
+    }
+    disabled={currentPage === totalPages || totalPages === 0}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Next
+  </button>
+</div>
+
+</div>
+
     </div>
   </div>
   
