@@ -18,22 +18,28 @@ function Login() {
 
     setMessage("Logging in...");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+   const { data, error } = await supabase.auth.signInWithPassword({
+  email: email,
+  password: password,
+});
 
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
+if (error) {
+  setMessage(error.message);
+  return;
+}
 
-   if (data.user) {
+if (data.user) {
   setMessage("Login successful.");
-  navigate("/customer-dashboard");
+
+  const role = data.user.user_metadata?.role?.toLowerCase();
+
+  if (role === "customer") {
+    navigate("/customer-portal");
+  } else {
+    navigate("/customer-dashboard");
+  }
 }
   }
-
   return (
     <div>
       <h1>Login</h1>
