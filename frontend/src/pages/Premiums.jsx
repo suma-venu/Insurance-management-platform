@@ -64,61 +64,74 @@ console.log("Policies error:", error);
   }
 
   async function handleSavePayment(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    if (!policyId || !dueDate || !amount) {
-      setMessage("Please fill in policy, due date, and amount.");
-      return;
-    }
+  const amountValue = Number(amount);
 
-    const calculatedStatus = calculateStatus(paymentDate, dueDate);
-
-    const paymentData = {
-      policy_id: Number(policyId),
-      payment_date: paymentDate || null,
-      due_date: dueDate,
-      amount: Number(amount),
-      payment_status: calculatedStatus,
-    };
-
-    let error;
-
-    if (editingId) {
-      const response = await supabase
-        .from("premium_payments")
-        .update(paymentData)
-        .eq("id", editingId);
-
-      error = response.error;
-    } else {
-      const response = await supabase
-        .from("premium_payments")
-        .insert([paymentData])
-        .select();
-
-      error = response.error;
-    }
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage(
-      editingId
-        ? "Payment updated successfully."
-        : "Payment recorded successfully."
-    );
-
-    setPolicyId("");
-    setPaymentDate("");
-    setDueDate("");
-    setAmount("");
-    setPaymentStatus("Pending");
-    setEditingId(null);
-
-    fetchPayments();
+  if (!policyId || !dueDate || !amount) {
+    setMessage("Please fill in policy, due date, and amount.");
+    return;
   }
+
+  if (amountValue <= 0) {
+    setMessage("Amount must be greater than 0.");
+    return;
+  }
+
+  if (paymentDate && new Date(paymentDate) < new Date(dueDate)) {
+    setMessage("Payment date cannot be before the due date.");
+    return;
+  }
+
+  const calculatedStatus = calculateStatus(paymentDate, dueDate);
+
+  const paymentData = {
+    policy_id: Number(policyId),
+    payment_date: paymentDate || null,
+    due_date: dueDate,
+    amount: amountValue,
+    payment_status: calculatedStatus,
+  };
+
+  let error;
+
+  if (editingId) {
+    const response = await supabase
+      .from("premium_payments")
+      .update(paymentData)
+      .eq("id", editingId);
+
+    error = response.error;
+  } else {
+    const response = await supabase
+      .from("premium_payments")
+      .insert([paymentData])
+      .select();
+
+    error = response.error;
+  }
+
+  if (error) {
+    console.error("Premium payment error:", error);
+    setMessage("Unable to save the payment. Please try again.");
+    return;
+  }
+
+  setMessage(
+    editingId
+      ? "Payment updated successfully."
+      : "Payment recorded successfully."
+  );
+
+  setPolicyId("");
+  setPaymentDate("");
+  setDueDate("");
+  setAmount("");
+  setPaymentStatus("Pending");
+  setEditingId(null);
+
+  await fetchPayments();
+}
 
   function handleEditPayment(payment) {
     setEditingId(payment.id);
@@ -217,6 +230,8 @@ console.log("Policies error:", error);
               placeholder="Amount"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
+               min="1"
+               step="0.01"
               className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
               required
             />

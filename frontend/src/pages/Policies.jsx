@@ -111,10 +111,12 @@ async function handleRenewPolicy(policyId) {
 async function handleAddPolicy(event) {
   event.preventDefault();
 
+  const trimmedPolicyType = policyType.trim();
+  const premiumValue = Number(premiumAmount);
+
   if (
     !customerId ||
-    !policyType ||
-    !policyNumber ||
+    !trimmedPolicyType ||
     !premiumAmount ||
     !startDate ||
     !endDate ||
@@ -124,56 +126,98 @@ async function handleAddPolicy(event) {
     return;
   }
 
-  setMessage("Adding policy...");
+  if (premiumValue <= 0) {
+    setMessage("Premium amount must be greater than 0.");
+    return;
+  }
 
- 
- let error;
+  if (new Date(endDate) <= new Date(startDate)) {
+    setMessage("End date must be after the start date.");
+    return;
+  }
 
-if (editingId) {
-  const response = await supabase
-    .from("policies")
-    .update({
-      customer_id: Number(customerId),
-      policy_type: policyType,
-      policy_number: Number(policyNumber),
-      premium_amount: Number(premiumAmount),
-      start_date: startDate,
-      end_date: endDate,
-      status: status,
-    })
-    .eq("id", editingId);
+  setMessage(editingId ? "Updating policy..." : "Adding policy...");
 
-  error = response.error;
-} else {
-  const response = await supabase
-    .from("policies")
-    .insert([
-      {
-        customer_id: Number(customerId),
-        policy_type: policyType,
-        policy_number: Number(policyNumber),
-        premium_amount: Number(premiumAmount),
-        start_date: startDate,
-        end_date: endDate,
-        status: status,
-      },
-    ])
-    .select();
+  let finalPolicyNumber;
 
-  error = response.error;
-}
+  if (editingId) {
+    const currentPolicy = policies.find(
+      (policy) => policy.id === editingId
+    );
+
+    if (!currentPolicy) {
+      setMessage("Unable to find the policy being edited.");
+      return;
+    }
+
+    // Keep the existing policy number while editing
+    finalPolicyNumber = Number(currentPolicy.policy_number);
+  } else {
+    // Find the highest existing policy number
+    const { data: lastPolicy, error: numberError } = await supabase
+      .from("policies")
+      .select("policy_number")
+      .order("policy_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (numberError) {
+      console.error("Policy-number generation error:", numberError);
+      setMessage("Unable to generate a policy number.");
+      return;
+    }
+
+    // Start from 100001 when no policy exists
+    finalPolicyNumber = lastPolicy
+      ? Number(lastPolicy.policy_number) + 1
+      : 100001;
+  }
+
+  const policyData = {
+    customer_id: Number(customerId),
+    policy_type: trimmedPolicyType,
+    policy_number: finalPolicyNumber,
+    premium_amount: premiumValue,
+    start_date: startDate,
+    end_date: endDate,
+    status: status,
+  };
+
+  let error;
+
+  if (editingId) {
+    const response = await supabase
+      .from("policies")
+      .update(policyData)
+      .eq("id", editingId);
+
+    error = response.error;
+  } else {
+    const response = await supabase
+      .from("policies")
+      .insert([policyData])
+      .select();
+
+    error = response.error;
+  }
 
   if (error) {
-     console.log("Full Supabase error:", error);
-    setMessage(error.message);
+    console.error("Policy save error:", error);
+
+    if (error.code === "23505") {
+      setMessage("This policy number already exists. Please try again.");
+    } else {
+      setMessage("Unable to save the policy. Please try again.");
+    }
+
     return;
   }
 
   setMessage(
-  editingId
-    ? "Policy updated successfully."
-    : "Policy created successfully."
-);
+    editingId
+      ? "Policy updated successfully."
+      : `Policy created successfully. Policy number: ${finalPolicyNumber}`
+  );
 
   setCustomerId("");
   setPolicyType("");
@@ -183,9 +227,9 @@ if (editingId) {
   setEndDate("");
   setStatus("Active");
   setEditingId(null);
-  fetchPolicies();
-}
 
+  await fetchPolicies();
+}
 
   useEffect(() => {
     fetchCustomers();
@@ -275,20 +319,15 @@ const totalPages = Math.ceil(
             required
           />
 
-          <input
-            type="number"
-            placeholder="Policy Number"
-            value={policyNumber}
-            onChange={(event) => setPolicyNumber(event.target.value)}
-            className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
-            required
-          />
+          
 
           <input
             type="number"
             placeholder="Premium Amount"
             value={premiumAmount}
             onChange={(event) => setPremiumAmount(event.target.value)}
+             min="1"
+             step="0.01"
             className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
             required
           />

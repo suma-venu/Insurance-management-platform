@@ -44,66 +44,87 @@ function Claims() {
   }
 
   async function handleSaveClaim(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    if (
-      !policyId ||
-      !claimAmount ||
-      !reason ||
-      !submissionDate
-    ) {
-      setMessage("Please fill in all required fields.");
-      return;
-    }
+  const amountValue = Number(claimAmount);
+  const trimmedReason = reason.trim();
+  const trimmedRemarks = remarks.trim();
 
-    const claimData = {
-      policy_id: Number(policyId),
-      claim_amount: Number(claimAmount),
-      reason,
-      status,
-      submission_date: submissionDate,
-      remarks,
-    };
-
-    let error;
-
-    if (editingId) {
-      const response = await supabase
-        .from("claims")
-        .update(claimData)
-        .eq("id", editingId);
-
-      error = response.error;
-    } else {
-      const response = await supabase
-        .from("claims")
-        .insert([claimData])
-        .select();
-
-      error = response.error;
-    }
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage(
-      editingId
-        ? "Claim updated successfully."
-        : "Claim submitted successfully."
-    );
-
-    setPolicyId("");
-    setClaimAmount("");
-    setReason("");
-    setStatus("Pending");
-    setSubmissionDate("");
-    setRemarks("");
-    setEditingId(null);
-
-    fetchClaims();
+  if (
+    !policyId ||
+    !claimAmount ||
+    !trimmedReason ||
+    !submissionDate
+  ) {
+    setMessage("Please fill in all required fields.");
+    return;
   }
+
+  if (amountValue <= 0) {
+    setMessage("Claim amount must be greater than 0.");
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const submitted = new Date(submissionDate);
+  submitted.setHours(0, 0, 0, 0);
+
+  if (submitted > today) {
+    setMessage("Submission date cannot be in the future.");
+    return;
+  }
+
+  const claimData = {
+    policy_id: Number(policyId),
+    claim_amount: amountValue,
+    reason: trimmedReason,
+    status,
+    submission_date: submissionDate,
+    remarks: trimmedRemarks,
+  };
+
+  let error;
+
+  if (editingId) {
+    const response = await supabase
+      .from("claims")
+      .update(claimData)
+      .eq("id", editingId);
+
+    error = response.error;
+  } else {
+    const response = await supabase
+      .from("claims")
+      .insert([claimData])
+      .select();
+
+    error = response.error;
+  }
+
+  if (error) {
+    console.error("Claim error:", error);
+    setMessage("Unable to save the claim. Please try again.");
+    return;
+  }
+
+  setMessage(
+    editingId
+      ? "Claim updated successfully."
+      : "Claim submitted successfully."
+  );
+
+  setPolicyId("");
+  setClaimAmount("");
+  setReason("");
+  setStatus("Pending");
+  setSubmissionDate("");
+  setRemarks("");
+  setEditingId(null);
+
+  await fetchClaims();
+}
 
   function handleEditClaim(claim) {
     setEditingId(claim.id);
@@ -187,6 +208,8 @@ function Claims() {
               placeholder="Claim Amount"
               value={claimAmount}
               onChange={(event) => setClaimAmount(event.target.value)}
+               min="1"
+               step="0.01"
               className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
               required
             />

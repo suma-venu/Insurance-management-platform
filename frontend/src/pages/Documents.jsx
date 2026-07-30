@@ -43,75 +43,95 @@ function Documents() {
     setDocuments(data ?? []);
   }
 
-  async function handleUploadDocument(event) {
-    event.preventDefault();
+ async function handleUploadDocument(event) {
+  event.preventDefault();
 
-    if (!customerId || !documentType || !selectedFile) {
-      setMessage("Please select a customer, document type, and file.");
-      return;
-    }
-
-    setUploading(true);
-    setMessage("Uploading document...");
-
-    const safeFileName = selectedFile.name.replaceAll(" ", "_");
-
-    const storagePath =
-      `${customerId}/${Date.now()}-${safeFileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("documents")
-      .upload(storagePath, selectedFile);
-
-    if (uploadError) {
-      setMessage(uploadError.message);
-      setUploading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("documents")
-      .getPublicUrl(storagePath);
-
-    const publicUrl = urlData.publicUrl;
-
-    const { error: databaseError } = await supabase
-      .from("documents")
-      .insert([
-        {
-          customer_id: Number(customerId),
-          document_type: documentType,
-          file_name: selectedFile.name,
-          file_path: publicUrl,
-          uploaded_at: new Date().toISOString(),
-        },
-      ]);
-
-    if (databaseError) {
-      await supabase.storage
-        .from("documents")
-        .remove([storagePath]);
-
-      setMessage(databaseError.message);
-      setUploading(false);
-      return;
-    }
-
-    setMessage("Document uploaded successfully.");
-
-    setCustomerId("");
-    setDocumentType("");
-    setSelectedFile(null);
-
-    const fileInput = document.getElementById("document-file");
-
-    if (fileInput) {
-      fileInput.value = "";
-    }
-
-    setUploading(false);
-    fetchDocuments();
+  if (!customerId || !documentType || !selectedFile) {
+    setMessage("Please select a customer, document type, and file.");
+    return;
   }
+
+  const allowedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+  ];
+
+  if (!allowedTypes.includes(selectedFile.type)) {
+    setMessage("Only PDF, JPG, JPEG and PNG files are allowed.");
+    return;
+  }
+
+  const maxSize = 5 * 1024 * 1024; // 5 MB
+
+  if (selectedFile.size > maxSize) {
+    setMessage("File size must be less than 5 MB.");
+    return;
+  }
+
+  setUploading(true);
+  setMessage("Uploading document...");
+
+  const safeFileName = selectedFile.name.replaceAll(" ", "_");
+
+  const storagePath =
+    `${customerId}/${Date.now()}-${safeFileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("documents")
+    .upload(storagePath, selectedFile);
+
+  if (uploadError) {
+    setMessage(uploadError.message);
+    setUploading(false);
+    return;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("documents")
+    .getPublicUrl(storagePath);
+
+  const publicUrl = urlData.publicUrl;
+
+  const { error: databaseError } = await supabase
+    .from("documents")
+    .insert([
+      {
+        customer_id: Number(customerId),
+        document_type: documentType,
+        file_name: selectedFile.name,
+        file_path: publicUrl,
+        uploaded_at: new Date().toISOString(),
+      },
+    ]);
+
+  if (databaseError) {
+    await supabase.storage
+      .from("documents")
+      .remove([storagePath]);
+
+    setMessage(databaseError.message);
+    setUploading(false);
+    return;
+  }
+
+  setMessage("Document uploaded successfully.");
+
+  setCustomerId("");
+  setDocumentType("");
+  setSelectedFile(null);
+
+  const fileInput = document.getElementById("document-file");
+
+  if (fileInput) {
+    fileInput.value = "";
+  }
+
+  setUploading(false);
+
+  await fetchDocuments();
+}
 
   async function handleDownloadDocument(document) {
   const publicMarker = "/storage/v1/object/public/documents/";

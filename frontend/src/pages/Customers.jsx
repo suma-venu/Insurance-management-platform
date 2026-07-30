@@ -18,58 +18,106 @@ function Customers(){
 
 const customersPerPage = 5;
 
-  async function handleAddCustomer(event){
-event.preventDefault();
+ async function handleAddCustomer(event) {
+  event.preventDefault();
 
-if(!name || !dob|| !phone || !address || !email ){
-  setMessage("Please fill in all fields.");
-  return;
-}
-setMessage("adding customer...");
+  const trimmedName = name.trim();
+  const trimmedPhone = phone.trim();
+  const trimmedAddress = address.trim();
+  const trimmedEmail = email.trim().toLowerCase();
 
+  if (
+    !trimmedName ||
+    !dob ||
+    !trimmedPhone ||
+    !trimmedAddress ||
+    !trimmedEmail
+  ) {
+    setMessage("Please fill in all fields.");
+    return;
+  }
 
-let error;
+  if (!/^[A-Za-z\s]+$/.test(trimmedName)) {
+    setMessage("Name should contain only letters and spaces.");
+    return;
+  }
 
-if (editingId) {
-  const response = await supabase
+  if (!/^\d{10}$/.test(trimmedPhone)) {
+    setMessage("Phone number must contain exactly 10 digits.");
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    setMessage("Please enter a valid email address.");
+    return;
+  }
+
+  setMessage(editingId ? "Updating customer..." : "Adding customer...");
+
+  let duplicateQuery = supabase
     .from("customers")
-    .update({
-      name: name,
-      dob: dob,
-      phone: phone,
-      address: address,
-      email: email,
-    })
-    .eq("id", editingId);
+    .select("id")
+    .eq("email", trimmedEmail);
 
-  error = response.error;
-} else {
-  const response = await supabase
-    .from("customers")
-    .insert([
-      {
-        name: name,
-        dob: dob,
-        phone: phone,
-        address: address,
-        email: email,
-      },
-    ]);
+  if (editingId) {
+    duplicateQuery = duplicateQuery.neq("id", editingId);
+  }
 
-  error = response.error;
-}
+  const { data: existingCustomers, error: duplicateError } =
+    await duplicateQuery.limit(1);
 
+  if (duplicateError) {
+    setMessage("Unable to validate the email. Please try again.");
+    return;
+  }
 
-     if (error) {
-    setMessage(error.message);
+  if (existingCustomers && existingCustomers.length > 0) {
+    setMessage("A customer with this email already exists.");
+    return;
+  }
+
+  let error;
+
+  const customerData = {
+    name: trimmedName,
+    dob: dob,
+    phone: trimmedPhone,
+    address: trimmedAddress,
+    email: trimmedEmail,
+  };
+
+  if (editingId) {
+    const response = await supabase
+      .from("customers")
+      .update(customerData)
+      .eq("id", editingId);
+
+    error = response.error;
+  } else {
+    const response = await supabase
+      .from("customers")
+      .insert([customerData]);
+
+    error = response.error;
+  }
+
+  if (error) {
+    console.error("Customer save error:", error);
+
+    if (error.code === "23505") {
+      setMessage("This customer email already exists.");
+    } else {
+      setMessage("Unable to save the customer. Please try again.");
+    }
+
     return;
   }
 
   setMessage(
-  editingId
-    ? "Customer updated successfully."
-    : "Customer registered successfully."
-);
+    editingId
+      ? "Customer updated successfully."
+      : "Customer registered successfully."
+  );
 
   setName("");
   setDob("");
@@ -77,8 +125,11 @@ if (editingId) {
   setAddress("");
   setEmail("");
   setEditingId(null);
-fetchCustomers();
- }
+
+  await fetchCustomers();
+}
+
+
 
  async function fetchCustomers(){
   const {data, error}= await supabase
@@ -162,14 +213,17 @@ return (
          required
       />
 
-      <input
-        type="text"
-        placeholder="Phone"
-        value={phone}
-        onChange={(event) => setPhone(event.target.value)}
-         className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-green-500"
-         required
-      />
+
+     <input
+  type="tel"
+  placeholder="Phone"
+  value={phone}
+  onChange={(event) => setPhone(event.target.value)}
+  maxLength={10}
+  inputMode="numeric"
+  className="rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-green-500"
+  required
+/>
 
       <input
         type="text"
