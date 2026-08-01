@@ -175,6 +175,37 @@ const totalPages = Math.ceil(
   filteredCustomers.length / customersPerPage
 );
 
+async function handleDeleteCustomer(id) {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this customer?"
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("customers")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    setMessage("Unable to delete customer.");
+    return;
+  }
+
+  setMessage("Customer deleted successfully.");
+
+  if (editingId === id) {
+    setEditingId(null);
+    setName("");
+    setDob("");
+    setPhone("");
+    setAddress("");
+    setEmail("");
+  }
+
+  await fetchCustomers();
+}
 
 return (
   <div className="min-h-screen bg-sky-300 p-6">
@@ -250,9 +281,23 @@ return (
 
     </form>
 
-    <p className="mt-4 text-sm font-medium text-slate-700">
-      {message}
-      </p>
+   {message && (
+  <div
+    className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("success") ||
+      message.toLowerCase().includes("registered") ||
+      message.toLowerCase().includes("updated") ||
+      message.toLowerCase().includes("deleted")
+        ? "border-green-200 bg-green-50 text-green-700"
+        : message.toLowerCase().includes("adding") ||
+          message.toLowerCase().includes("updating")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
       </div>
   <div className="rounded-xl bg-white p-6 shadow">
 
@@ -290,7 +335,17 @@ return (
            
 
 <tbody>
-        { currentCustomers.map((customer) => (
+  {currentCustomers.length === 0 ? (
+    <tr>
+      <td
+        colSpan="6"
+        className="py-8 text-center text-slate-500"
+      >
+        No customers found.
+      </td>
+    </tr>
+  ) : (
+    currentCustomers.map((customer) => (
                 <tr
                   key={customer.id}
                   className="border-b hover:bg-slate-50"
@@ -301,19 +356,30 @@ return (
                   <td className="px-4 py-3">{customer.address}</td>
                   <td className="px-4 py-3">{customer.email}</td>
              <td className="px-4 py-3">
-            <button
-              type="button"
-              onClick={() => handleEditCustomer(customer)}
-              className="rounded bg-amber-500 px-3 py-1 text-white hover:bg-amber-600"
-            >
-              Edit
-            </button>
-          </td>
+  <div className="flex gap-2">
+    <button
+      type="button"
+      onClick={() => handleEditCustomer(customer)}
+      className="rounded bg-amber-500 px-3 py-1 text-white hover:bg-amber-600"
+    >
+      Edit
+    </button>
+
+    <button
+      type="button"
+      onClick={() => handleDeleteCustomer(customer.id)}
+      className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+    >
+      Delete
+    </button>
+  </div>
+</td>
 
 
                 </tr>
-              ))}
-            </tbody>
+             ))
+)}
+</tbody>
 
           </table>
 </div>

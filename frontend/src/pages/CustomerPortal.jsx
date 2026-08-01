@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 function CustomerPortal() {
   const [policies, setPolicies] = useState([]);
   const [message, setMessage] = useState("Loading your policy details...");
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     fetchCustomerPolicies();
@@ -35,7 +36,9 @@ function CustomerPortal() {
         "No customer profile is linked to this login email."
       );
       return;
-    }
+    } 
+    
+    setCustomerName(customer.name);
 
     const { data, error } = await supabase
       .from("policies")
@@ -56,24 +59,30 @@ function CustomerPortal() {
     <div className="min-h-screen bg-sky-200 p-6">
       <div className="mx-auto max-w-5xl">
         <h1 className="mb-2 text-3xl font-bold text-slate-700">
-          My Insurance
-        </h1>
+  {customerName ? `Welcome, ${customerName}` : "My Insurance"}
+</h1>
 
         <p className="mb-6 text-slate-600">
           View your policy details, status, and due dates.
         </p>
 
-        {message && (
-          <div className="rounded-xl bg-white p-5 text-slate-700 shadow">
-            {message}
-          </div>
-        )}
+       {message && (
+  <div
+    className={`rounded-xl border px-5 py-4 text-sm font-medium ${
+      message.toLowerCase().includes("loading")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
 
         <div className="grid gap-5 md:grid-cols-2">
           {policies.map((policy) => (
             <div
               key={policy.id}
-              className="rounded-xl bg-white p-6 shadow"
+             className="rounded-xl border-l-4 border-blue-500 bg-white p-6 shadow transition hover:shadow-lg"
             >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-blue-700">
@@ -106,17 +115,17 @@ function CustomerPortal() {
 
                 <p>
                   <strong>Start Date:</strong>{" "}
-                  {policy.start_date}
+                  {new Date(policy.start_date).toLocaleDateString("en-IN")}
                 </p>
 
                 <p>
                   <strong>End Date:</strong>{" "}
-                  {policy.end_date}
+                 {new Date(policy.end_date).toLocaleDateString("en-IN")}
                 </p>
 
                 <p>
                   <strong>Due Date:</strong>{" "}
-                  {policy.end_date}
+                 {new Date(policy.end_date).toLocaleDateString("en-IN")}
                 </p>
               </div>
             </div>

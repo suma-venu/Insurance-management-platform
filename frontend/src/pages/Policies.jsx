@@ -380,10 +380,22 @@ const totalPages = Math.ceil(
         </form>
 
         {message && (
-          <p className="mt-4 text-sm font-medium text-slate-700">
-            {message}
-          </p>
-        )}
+  <div
+    className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("success") ||
+      message.toLowerCase().includes("created") ||
+      message.toLowerCase().includes("updated") ||
+      message.toLowerCase().includes("renewed")
+        ? "border-green-200 bg-green-50 text-green-700"
+        : message.toLowerCase().includes("adding") ||
+          message.toLowerCase().includes("updating")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow">
@@ -441,7 +453,11 @@ const totalPages = Math.ceil(
                   key={policy.id}
                   className="border-b text-sm text-slate-700 hover:bg-slate-50"
                 >
-                  <td className="px-4 py-3">{policy.customer_id}</td>
+                  <td className="px-4 py-3 font-medium">
+  {customers.find(
+    (customer) => customer.id === policy.customer_id
+  )?.name || "Unknown"}
+</td>
                   <td className="px-4 py-3">{policy.policy_type}</td>
                   <td className="px-4 py-3">{policy.policy_number}</td>
                   <td className="px-4 py-3">
@@ -486,6 +502,7 @@ const totalPages = Math.ceil(
                       <button
                         type="button"
                         onClick={() => handleRenewPolicy(policy.id)}
+                        
                         className="rounded-lg bg-green-600 px-3 py-1.5 font-medium text-white hover:bg-green-700"
                       >
                         Renew

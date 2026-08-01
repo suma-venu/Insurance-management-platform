@@ -169,35 +169,52 @@ function Reports() {
   };
 
   const summaryCards = [
-    {
-      title: "Total Customers",
-      value: report.customers,
-    },
-    {
-      title: "Active Policies",
-      value: report.activePolicies,
-    },
-    {
-      title: "Expired Policies",
-      value: report.expiredPolicies,
-    },
-    {
-      title: "Pending Claims",
-      value: report.pendingClaims,
-    },
-    {
-      title: "Approved Claims",
-      value: report.approvedClaims,
-    },
-    {
-      title: "Premium Collected",
-      value: `₹${report.premiumCollected.toLocaleString("en-IN")}`,
-    },
-    {
-      title: "Uploaded Documents",
-      value: report.uploadedDocuments,
-    },
-  ];
+  {
+    title: "Total Customers",
+    value: report.customers,
+    color: "border-blue-500",
+  },
+  {
+    title: "Active Policies",
+    value: report.activePolicies,
+    color: "border-green-500",
+  },
+  {
+    title: "Expired Policies",
+    value: report.expiredPolicies,
+    color: "border-yellow-500",
+  },
+  {
+    title: "Cancelled Policies",
+    value: report.cancelledPolicies,
+    color: "border-red-500",
+  },
+  {
+    title: "Pending Claims",
+    value: report.pendingClaims,
+    color: "border-amber-500",
+  },
+  {
+    title: "Approved Claims",
+    value: report.approvedClaims,
+    color: "border-green-500",
+  },
+  {
+    title: "Rejected Claims",
+    value: report.rejectedClaims,
+    color: "border-red-500",
+  },
+  {
+    title: "Premium Collected",
+    value: `₹${report.premiumCollected.toLocaleString("en-IN")}`,
+    color: "border-indigo-500",
+  },
+  {
+    title: "Uploaded Documents",
+    value: report.uploadedDocuments,
+    color: "border-purple-500",
+  },
+];
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
@@ -221,17 +238,23 @@ function Reports() {
           </Link>
         </div>
 
-        {message && (
-          <p className="mb-5 rounded-lg bg-white p-4 text-slate-700 shadow">
-            {message}
-          </p>
-        )}
+       {message && (
+  <div
+    className={`mb-5 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("loading")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
 
         <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {summaryCards.map((card) => (
             <div
               key={card.title}
-              className="rounded-xl bg-white p-6 shadow"
+              className={`rounded-xl border-l-4 ${card.color} bg-white p-6 shadow transition hover:shadow-lg`}
             >
               <p className="text-sm font-medium text-slate-500">
                 {card.title}

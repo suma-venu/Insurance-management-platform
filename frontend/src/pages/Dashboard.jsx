@@ -1,70 +1,102 @@
 import { Link } from "react-router-dom";
 
 function CustomerDashboard() {
+  const modules = [
+    {
+      title: "Customer Management",
+      description: "Register, search, view, edit, and manage customer records.",
+      path: "/customers",
+      icon: "👥",
+    },
+    {
+      title: "Policy Management",
+      description: "Create, renew, update, and monitor insurance policies.",
+      path: "/policies",
+      icon: "📄",
+    },
+    {
+      title: "Premium Tracking",
+      description: "Record premium payments and track due or overdue amounts.",
+      path: "/premiums",
+      icon: "💳",
+    },
+    {
+      title: "Claim Management",
+      description: "Submit, review, approve, or reject insurance claims.",
+      path: "/claims",
+      icon: "📋",
+    },
+    {
+      title: "Document Management",
+      description: "Upload, download, and manage customer documents.",
+      path: "/documents",
+      icon: "📁",
+    },
+    {
+      title: "Reports Dashboard",
+      description: "View policy, claim, premium, and customer analytics.",
+      path: "/reports",
+      icon: "📊",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <h1 className="mb-2 text-3xl font-bold text-slate-800">
-          Customer Dashboard
-        </h1>
+        <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
+            Insurance Management Platform
+          </p>
 
-        <p className="mb-8 text-slate-600">
-          Access customer, policy, premium, claim, and document modules.
-        </p>
+          <h1 className="text-3xl font-bold text-slate-800 sm:text-4xl">
+            Management Dashboard
+          </h1>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Link
-            to="/customers"
-            className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
-          >
-            <h2 className="text-xl font-semibold text-blue-700">
-              Customer Management
-            </h2>
-          </Link>
+          <p className="mt-3 max-w-2xl text-slate-600">
+            Manage customers, insurance policies, premium payments, claims,
+            documents, and reports from one place.
+          </p>
+        </div>
 
-          <Link
-            to="/policies"
-            className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
-          >
-            <h2 className="text-xl font-semibold text-blue-700">
-              Policy Management
-            </h2>
-          </Link>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-800">
+            Management Modules
+          </h2>
 
-          <Link
-  to="/premiums"
-  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
->
-  <h2 className="text-xl font-semibold text-blue-700">
-    Premium Tracking
-  </h2>
-</Link>
+          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+            {modules.length} modules
+          </span>
+        </div>
 
-<Link
-  to="/claims"
-  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
->
-  <h2 className="text-xl font-semibold text-blue-700">
-    Claim Management
-  </h2>
-</Link>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {modules.map((module) => (
+            <Link
+              key={module.path}
+              to={module.path}
+              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl transition group-hover:bg-blue-600">
+                <span className="group-hover:scale-110">
+                  {module.icon}
+                </span>
+              </div>
 
-<Link
-  to="/documents"
-  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
->
-  <h2 className="text-xl font-semibold text-blue-700">
-    Document Management
-  </h2>
-</Link>
-<Link
-  to="/reports"
-  className="rounded-xl bg-white p-6 shadow hover:shadow-lg"
->
-  <h2 className="text-xl font-semibold text-blue-700">
-    Report Dashboard
-  </h2>
-</Link>
+              <h3 className="text-xl font-bold text-slate-800 transition group-hover:text-blue-700">
+                {module.title}
+              </h3>
+
+              <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">
+                {module.description}
+              </p>
+
+              <div className="mt-5 flex items-center font-semibold text-blue-600">
+                Open module
+                <span className="ml-2 transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

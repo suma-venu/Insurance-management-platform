@@ -14,6 +14,11 @@ function Claims() {
   const [claims, setClaims] = useState([]);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState("");
+const [filterStatus, setFilterStatus] = useState("All");
+const [currentPage, setCurrentPage] = useState(1);
+
+const claimsPerPage = 5;
 
   async function fetchPolicies() {
     const { data, error } = await supabase
@@ -157,6 +162,34 @@ function Claims() {
     fetchClaims();
   }, []);
 
+  const filteredClaims = claims.filter((claim) => {
+  const policy = policies.find(
+    (item) => item.id === claim.policy_id
+  );
+
+  const matchesSearch =
+    claim.reason.toLowerCase().includes(search.toLowerCase()) ||
+    policy?.policy_number?.toString().includes(search);
+
+  const matchesStatus =
+    filterStatus === "All" ||
+    claim.status === filterStatus;
+
+  return matchesSearch && matchesStatus;
+});
+
+const lastClaim = currentPage * claimsPerPage;
+const firstClaim = lastClaim - claimsPerPage;
+
+const currentClaims = filteredClaims.slice(
+  firstClaim,
+  lastClaim
+);
+
+const totalPages = Math.ceil(
+  filteredClaims.length / claimsPerPage
+);
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-7xl">
@@ -165,6 +198,32 @@ function Claims() {
             <h1 className="text-3xl font-bold text-slate-800">
               Claim Management
             </h1>
+            <div className="mb-4 flex flex-col gap-3 md:flex-row">
+  <input
+    type="text"
+    placeholder="Search by policy number or reason..."
+    value={search}
+    onChange={(event) => {
+      setSearch(event.target.value);
+      setCurrentPage(1);
+    }}
+    className="w-full rounded-lg border border-slate-300 p-3 outline-none focus:border-blue-500"
+  />
+
+  <select
+    value={filterStatus}
+    onChange={(event) => {
+      setFilterStatus(event.target.value);
+      setCurrentPage(1);
+    }}
+    className="rounded-lg border border-slate-300 bg-white p-3 outline-none focus:border-blue-500"
+  >
+    <option value="All">All Statuses</option>
+    <option value="Pending">Pending</option>
+    <option value="Approved">Approved</option>
+    <option value="Rejected">Rejected</option>
+  </select>
+</div>
 
             <p className="mt-1 text-slate-600">
               Submit, review, approve, and reject insurance claims.
@@ -258,10 +317,21 @@ function Claims() {
           </form>
 
           {message && (
-            <p className="mt-4 text-sm font-medium text-slate-700">
-              {message}
-            </p>
-          )}
+  <div
+    className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("submitted") ||
+      message.toLowerCase().includes("updated") ||
+      message.toLowerCase().includes("approved") ||
+      message.toLowerCase().includes("rejected")
+        ? "border-green-200 bg-green-50 text-green-700"
+        : message.toLowerCase().includes("editing")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
         </div>
 
         <div className="rounded-xl bg-white p-6 shadow">
@@ -284,14 +354,25 @@ function Claims() {
               </thead>
 
               <tbody>
-                {claims.map((claim) => (
+                {currentClaims.map((claim) => (
                   <tr
                     key={claim.id}
                     className="border-b text-sm text-slate-700 hover:bg-slate-50"
                   >
                     <td className="px-4 py-3">
                      
-                     Policy ID: {claim.policy_id}
+                     
+  Policy #
+  {policies.find(
+    (policy) => policy.id === claim.policy_id
+  )?.policy_number || claim.policy_id}
+
+  <div className="text-xs text-slate-500">
+    {policies.find(
+      (policy) => policy.id === claim.policy_id
+    )?.policy_type || ""}
+  </div>
+
 
 
                     </td>
@@ -355,7 +436,7 @@ function Claims() {
                   </tr>
                 ))}
 
-                {claims.length === 0 && (
+                {currentClaims.length === 0 && (
                   <tr>
                     <td
                       colSpan="7"
@@ -368,6 +449,35 @@ function Claims() {
               </tbody>
             </table>
           </div>
+          <div className="mt-6 flex justify-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) => Math.max(page - 1, 1))
+    }
+    disabled={currentPage === 1}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Previous
+  </button>
+
+  <span className="px-4 py-2">
+    {currentPage} / {totalPages || 1}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) =>
+        Math.min(page + 1, totalPages)
+      )
+    }
+    disabled={currentPage === totalPages || totalPages === 0}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Next
+  </button>
+</div>
         </div>
       </div>
     </div>

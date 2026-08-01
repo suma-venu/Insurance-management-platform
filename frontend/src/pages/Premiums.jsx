@@ -14,6 +14,11 @@ function Premiums() {
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
 
+  const [search, setSearch] = useState("");
+const [currentPage, setCurrentPage] = useState(1);
+
+const paymentsPerPage = 5;
+
   async function fetchPolicies() {
     const { data, error } = await supabase
       .from("policies")
@@ -179,6 +184,24 @@ console.log("Policies error:", error);
   loadData();
 }, []);
 
+const filteredPayments = payments.filter((payment) =>
+  payment.policies?.policy_number
+    ?.toString()
+    .includes(search)
+);
+
+const lastPayment = currentPage * paymentsPerPage;
+const firstPayment = lastPayment - paymentsPerPage;
+
+const currentPayments = filteredPayments.slice(
+  firstPayment,
+  lastPayment
+);
+
+const totalPages = Math.ceil(
+  filteredPayments.length / paymentsPerPage
+);
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-7xl">
@@ -276,17 +299,39 @@ console.log("Policies error:", error);
             </button>
           </form>
 
-          {message && (
-            <p className="mt-4 text-sm font-medium text-slate-700">
-              {message}
-            </p>
-          )}
+         {message && (
+  <div
+    className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("success") ||
+      message.toLowerCase().includes("recorded") ||
+      message.toLowerCase().includes("updated") ||
+      message.toLowerCase().includes("paid")
+        ? "border-green-200 bg-green-50 text-green-700"
+        : message.toLowerCase().includes("editing")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
         </div>
 
         <div className="rounded-xl bg-white p-6 shadow">
           <h2 className="mb-5 text-xl font-semibold text-slate-700">
             Payment History
           </h2>
+
+          <input
+  type="text"
+  placeholder="Search by Policy Number..."
+  value={search}
+  onChange={(e) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  }}
+  className="mb-4 w-full rounded-lg border border-slate-300 p-3 outline-none focus:border-blue-500"
+/>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] border-collapse text-left">
@@ -302,7 +347,7 @@ console.log("Policies error:", error);
               </thead>
 
               <tbody>
-                {payments.map((payment) => {
+                {currentPayments.map((payment) => {
                   const displayStatus = calculateStatus(
                     payment.payment_date,
                     payment.due_date
@@ -365,7 +410,7 @@ console.log("Policies error:", error);
                   );
                 })}
 
-                {payments.length === 0 && (
+               {currentPayments.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"
@@ -378,6 +423,35 @@ console.log("Policies error:", error);
               </tbody>
             </table>
           </div>
+          <div className="mt-6 flex justify-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) => Math.max(page - 1, 1))
+    }
+    disabled={currentPage === 1}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Previous
+  </button>
+
+  <span className="px-4 py-2">
+    {currentPage} / {totalPages || 1}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) =>
+        Math.min(page + 1, totalPages)
+      )
+    }
+    disabled={currentPage === totalPages || totalPages === 0}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Next
+  </button>
+</div>
         </div>
       </div>
     </div>

@@ -11,6 +11,10 @@ function Documents() {
   const [documents, setDocuments] = useState([]);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState("");
+const [currentPage, setCurrentPage] = useState(1);
+
+const documentsPerPage = 5;
 
   async function fetchCustomers() {
     const { data, error } = await supabase
@@ -208,6 +212,35 @@ function Documents() {
     fetchDocuments();
   }, []);
 
+  const filteredDocuments = documents.filter((document) => {
+  const searchText = search.toLowerCase();
+
+  return (
+    document.customers?.name
+      ?.toLowerCase()
+      .includes(searchText) ||
+    document.document_type
+      ?.toLowerCase()
+      .includes(searchText) ||
+    document.file_name
+      ?.toLowerCase()
+      .includes(searchText)
+  );
+});
+
+const lastDocument = currentPage * documentsPerPage;
+const firstDocument = lastDocument - documentsPerPage;
+
+const currentDocuments = filteredDocuments.slice(
+  firstDocument,
+  lastDocument
+);
+
+const totalPages = Math.ceil(
+  filteredDocuments.length / documentsPerPage
+);
+
+
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-7xl">
@@ -216,6 +249,17 @@ function Documents() {
             <h1 className="text-3xl font-bold text-slate-800">
               Document Management
             </h1>
+
+            <input
+  type="text"
+  placeholder="Search by customer, document type, or file name..."
+  value={search}
+  onChange={(event) => {
+    setSearch(event.target.value);
+    setCurrentPage(1);
+  }}
+  className="mb-4 w-full rounded-lg border border-slate-300 p-3 outline-none focus:border-blue-500"
+/>
 
             <p className="mt-1 text-slate-600">
               Upload, view, download, and manage customer documents.
@@ -301,11 +345,20 @@ function Documents() {
             </button>
           </form>
 
-          {message && (
-            <p className="mt-4 text-sm font-medium text-slate-700">
-              {message}
-            </p>
-          )}
+         {message && (
+  <div
+    className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+      message.toLowerCase().includes("uploaded") ||
+      message.toLowerCase().includes("deleted")
+        ? "border-green-200 bg-green-50 text-green-700"
+        : message.toLowerCase().includes("uploading")
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : "border-red-200 bg-red-50 text-red-700"
+    }`}
+  >
+    {message}
+  </div>
+)}
         </div>
 
         <div className="rounded-xl bg-white p-6 shadow">
@@ -326,7 +379,7 @@ function Documents() {
               </thead>
 
               <tbody>
-                {documents.map((document) => (
+                {currentDocuments.map((document) => (
                   <tr
                     key={document.id}
                     className="border-b text-sm text-slate-700 hover:bg-slate-50"
@@ -385,7 +438,7 @@ function Documents() {
                   </tr>
                 ))}
 
-                {documents.length === 0 && (
+                {currentDocuments.length === 0 && (
                   <tr>
                     <td
                       colSpan="5"
@@ -398,6 +451,35 @@ function Documents() {
               </tbody>
             </table>
           </div>
+          <div className="mt-6 flex justify-center gap-2">
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) => Math.max(page - 1, 1))
+    }
+    disabled={currentPage === 1}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Previous
+  </button>
+
+  <span className="px-4 py-2">
+    {currentPage} / {totalPages || 1}
+  </span>
+
+  <button
+    type="button"
+    onClick={() =>
+      setCurrentPage((page) =>
+        Math.min(page + 1, totalPages)
+      )
+    }
+    disabled={currentPage === totalPages || totalPages === 0}
+    className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-300"
+  >
+    Next
+  </button>
+</div>
         </div>
       </div>
     </div>
