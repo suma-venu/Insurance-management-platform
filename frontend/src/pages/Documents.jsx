@@ -137,6 +137,30 @@ const documentsPerPage = 5;
   await fetchDocuments();
 }
 
+async function handleViewDocument(document) {
+  const publicMarker = "/storage/v1/object/public/documents/";
+
+  const storagePath = document.file_path.includes(publicMarker)
+    ? document.file_path.split(publicMarker)[1]
+    : "";
+
+  if (!storagePath) {
+    setMessage("Could not find the file path.");
+    return;
+  }
+
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(storagePath, 60);
+
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
   async function handleDownloadDocument(document) {
   const publicMarker = "/storage/v1/object/public/documents/";
 
@@ -407,14 +431,13 @@ const totalPages = Math.ceil(
 
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <a
-                          href={document.file_path}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
-                        >
-                          View
-                        </a>
+                       <button
+  type="button"
+  onClick={() => handleViewDocument(document)}
+  className="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700"
+>
+  View
+</button>
 
                       <button
   type="button"
